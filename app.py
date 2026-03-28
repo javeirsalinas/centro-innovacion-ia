@@ -15,29 +15,37 @@ with st.container():
     proyecto = st.text_input("Nombre del Proyecto (Ej: COLPA DE COPA)")
     descripcion = st.text_area("Cuéntanos sobre tu negocio (Productos, metas, desafíos)")
     
-    if st.button("Iniciar Auditoría con IA"):
-        if nombre and proyecto and descripcion:
-            with st.spinner("El Panel de Expertos está debatiendo..."):
-                # Configurar la IA (Gemini)
-                # Nota: En la nube usaremos st.secrets, por ahora lee de .env si es local
-                api_key = st.secrets.get("GOOGLE_API_KEY") if "GOOGLE_API_KEY" in st.secrets else None
-                
-                if api_key:
+    # ... (mantén el inicio del código igual) ...
+
+if st.button("Iniciar Auditoría con IA"):
+    if nombre and proyecto and descripcion:
+        with st.spinner("Conectando con el Panel de Expertos..."):
+            api_key = st.secrets.get("GOOGLE_API_KEY")
+            
+            if api_key:
+                try:
                     genai.configure(api_key=api_key)
+                    # Usamos 'gemini-1.5-flash' pero con la ruta completa por seguridad
                     model = genai.GenerativeModel('models/gemini-1.5-flash')
                     
                     prompt = f"""
                     Actúa como un Mentor Senior y Emprendedor Serial. 
                     Analiza el proyecto {proyecto} de {nombre}.
+                    Ubicación: Aguaytía, Ucayali.
                     Descripción: {descripcion}
-                    Dame 3 consejos críticos y una hoja de ruta de 3 pasos.
-                    Tono: Empático pero directo.
+                    
+                    Instrucciones:
+                    1. Valida el uso de insumos naturales de la selva.
+                    2. Da 3 consejos críticos de negocio.
+                    3. Sugiere un paso para mejorar la producción artesanal.
+                    Tono: Empático, experto y motivador.
                     """
                     
                     respuesta = model.generate_content(prompt)
-                    st.success(f"¡Bienvenido al Centro, {nombre}!")
+                    st.success(f"¡Análisis listo para {proyecto}!")
                     st.markdown(respuesta.text)
-                else:
-                    st.error("Falta la API Key de Google. Por favor, configúrala.")
-        else:
-            st.warning("Por favor, completa todos los campos.")
+                except Exception as e:
+                    st.error(f"Hubo un problema con la IA: {str(e)}")
+            else:
+                st.error("Error: No se encontró la llave de acceso (API Key).")
+# ...
