@@ -18,7 +18,7 @@ with st.container():
                 # 2. Nueva forma de conectar con la IA
                 client = genai.Client(api_key=api_key)
                 response = client.models.generate_content(
-                    model="models/gemini-1.5-flash", 
+                    model="models/gemini-pro",
                     contents=f"Como mentor senior, analiza este proyecto de la selva peruana: {descripcion}"
                 )
                 st.success(f"¡Análisis listo para {nombre}!")
