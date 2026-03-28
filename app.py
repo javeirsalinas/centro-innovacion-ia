@@ -1,74 +1,50 @@
 import streamlit as st
 import google.generativeai as genai
 
+# 1. Configuración de la interfaz
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
+st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
 
-# 1. Configuración Segura
-import streamlit as st
-import google.generativeai as genai
-
-# ESTA ES LA LÍNEA MÁGICA: Fuerza la versión v1 de la API
-from google.generativeai.types import RequestOptions
-
-st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
-st.title("🚀 AgentLake: Centro de Innovación")
-
+# 2. Configuración de la IA desde Secrets
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
     genai.configure(api_key=api_key)
     
-    nombre = st.text_input("Tu Nombre")
-    descripcion = st.text_area("Cuéntanos de tu proyecto (Ej: Licores de Jergón Sacha)")
+    # Formulario de entrada
+    with st.form("form_mentoria"):
+        nombre = st.text_input("Nombre del Emprendedor")
+        descripcion = st.text_area("Cuéntanos de tu proyecto (Ej: Licores de Jergón Sacha, Cerveza Artesanal)")
+        enviar = st.form_submit_button("Iniciar Auditoría con IA")
 
-    if st.button("Iniciar Mentoría"):
+    if enviar:
         if descripcion:
-            try:
-                # Usamos el modelo más nuevo disponible actualmente
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                
-                # Forzamos la petición a través de la API estable
-                response = model.generate_content(
-                    f"Actúa como mentor experto para {nombre}. Proyecto: {descripcion}. Dame 3 consejos.",
-                    request_options=RequestOptions(api_version='v1')
-                )
-                
-                st.success(f"¡Análisis listo!")
-                st.write(response.text)
-            except Exception as e:
-                st.error(f"Error técnico: {str(e)}")
-        else:
-            st.warning("Escribe la descripción de tu proyecto.")
-else:
-    st.error("Falta la GOOGLE_API_KEY en Secrets.")
-    
-    # 2. Formulario para COLPA DE COPA
-    nombre = st.text_input("Tu Nombre")
-    descripcion = st.text_area("Cuéntanos de tu proyecto (Ej: Licores de Jergón Sacha)")
-
-    if st.button("Iniciar Mentoría"):
-        if descripcion:
-            try:
-                # Intentamos con el modelo más estable y común
-                model = genai.GenerativeModel('gemini-1.5-flash')
-                
-                prompt = f"Actúa como mentor experto. Proyecto: {descripcion}. Dame 3 consejos."
-                
-                response = model.generate_content(prompt)
-                
-                st.success(f"¡Análisis listo, {nombre}!")
-                st.write(response.text)
-            except Exception as e:
-                # Si falla el 1.5-flash, intentamos el pro automáticamente
+            with st.spinner("El Panel de Expertos está analizando tu propuesta..."):
                 try:
-                    model_alt = genai.GenerativeModel('gemini-pro')
-                    response = model_alt.generate_content(prompt)
-                    st.success("Análisis completado (Modelo Pro)")
-                    st.write(response.text)
-                except Exception as e2:
-                    st.error(f"Error técnico final: {str(e2)}")
+                    # Configuración del modelo estable
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    prompt = f"""
+                    Actúa como mentor senior experto en agronegocios y licores.
+                    Emprendedor: {nombre}
+                    Proyecto: COLPA DE COPA
+                    Descripción: {descripcion}
+                    
+                    Dame 3 consejos estratégicos para este negocio en la selva peruana 
+                    y una puntuación de viabilidad del 1 al 10.
+                    """
+                    
+                    # Llamada a la IA
+                    response = model.generate_content(prompt)
+                    
+                    st.success(f"¡Análisis completado para {nombre}!")
+                    st.markdown(response.text)
+                except Exception as e:
+                    st.error(f"Error técnico con la IA: {str(e)}")
         else:
-            st.warning("Escribe la descripción de tu proyecto.")
+            st.warning("Por favor, describe tu proyecto para poder ayudarte.")
 else:
-    st.error("No se encontró la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("⚠️ Configuración incompleta: No se encontró la GOOGLE_API_KEY en los Secrets de Streamlit.")
+
+st.info("Desarrollado para el Centro de Emprendimiento e Innovación.")
