@@ -1,29 +1,41 @@
 import streamlit as st
-from google import genai
+import google.generativeai as genai
 
-# Configuración básica
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
 
-# 1. Captura de datos del proyecto COLPA DE COPA [cite: 7, 9]
-with st.container():
-    nombre = st.text_input("Nombre del Emprendedor")
-    proyecto = st.text_input("Proyecto", value="COLPA DE COPA")
-    descripcion = st.text_area("Descripción", placeholder="Ej: Producción de tragos de la selva y cervezas artesanales.")
+# 1. Configuración Segura
+api_key = st.secrets.get("GOOGLE_API_KEY")
+
+if api_key:
+    genai.configure(api_key=api_key)
+    
+    # 2. Formulario para COLPA DE COPA
+    nombre = st.text_input("Tu Nombre")
+    descripcion = st.text_area("Cuéntanos de tu proyecto (Ej: Licores de Jergón Sacha)")
 
     if st.button("Iniciar Mentoría"):
-        api_key = st.secrets.get("GOOGLE_API_KEY")
-        if api_key and descripcion:
+        if descripcion:
             try:
-                # 2. Nueva forma de conectar con la IA
-                client = genai.Client(api_key=api_key)
-                response = client.models.generate_content(
-                    model="models/gemini-pro",
-                    contents=f"Como mentor senior, analiza este proyecto de la selva peruana: {descripcion}"
-                )
-                st.success(f"¡Análisis listo para {nombre}!")
+                # Intentamos con el modelo más estable y común
+                model = genai.GenerativeModel('gemini-1.5-flash')
+                
+                prompt = f"Actúa como mentor experto. Proyecto: {descripcion}. Dame 3 consejos."
+                
+                response = model.generate_content(prompt)
+                
+                st.success(f"¡Análisis listo, {nombre}!")
                 st.write(response.text)
             except Exception as e:
-                st.error(f"Error técnico: {str(e)}")
+                # Si falla el 1.5-flash, intentamos el pro automáticamente
+                try:
+                    model_alt = genai.GenerativeModel('gemini-pro')
+                    response = model_alt.generate_content(prompt)
+                    st.success("Análisis completado (Modelo Pro)")
+                    st.write(response.text)
+                except Exception as e2:
+                    st.error(f"Error técnico final: {str(e2)}")
         else:
-            st.warning("Asegúrate de tener la API Key en 'Secrets' y llenar la descripción.")
+            st.warning("Escribe la descripción de tu proyecto.")
+else:
+    st.error("No se encontró la GOOGLE_API_KEY en los Secrets de Streamlit.")
