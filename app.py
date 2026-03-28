@@ -1,20 +1,20 @@
 import streamlit as st
 import google.generativeai as genai
-import os
+from google.generativeai.types import RequestOptions
 
-# CONFIGURACIÓN DE PÁGINA
+# Configuración de página
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
 st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
 
-# 1. OBTENER LA LLAVE DE LOS SECRETS
+# 1. Obtener la API KEY
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    # CONFIGURACIÓN FORZADA
+    # Configuración de la IA
     genai.configure(api_key=api_key)
     
-    # FORMULARIO
+    # Formulario
     with st.form("mentoria_form"):
         nombre = st.text_input("Nombre del Emprendedor")
         descripcion = st.text_area("Descripción (Ej: Licores de Jergón Sacha, Cerveza Artesanal)")
@@ -22,30 +22,26 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Analizando propuesta..."):
+            with st.spinner("Conectando con el servidor central..."):
                 try:
-                    # USAMOS GEMINI-PRO QUE ES EL MÁS ESTABLE PARA ESTA LIBRERÍA
-                    model = genai.GenerativeModel('gemini-pro')
+                    # USAMOS EL MODELO MÁS MODERNO PERO FORZANDO LA VERSIÓN 'v1'
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
-                    prompt = f"Actúa como mentor experto en la selva peruana. Analiza el proyecto {descripcion} de {nombre}."
+                    prompt = f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre}."
                     
-                    # LLAMADA DIRECTA
-                    response = model.generate_content(prompt)
+                    # LA LÍNEA MÁGICA: Forzamos la versión v1 (estable)
+                    response = model.generate_content(
+                        prompt,
+                        request_options=RequestOptions(api_version='v1')
+                    )
                     
                     st.success("¡Análisis Exitoso!")
                     st.markdown(response.text)
                 except Exception as e:
-                    # SI FALLA EL PRO, INTENTAMOS EL 1.0-PRO (EL ORIGINAL)
-                    try:
-                        model_fallback = genai.GenerativeModel('gemini-1.0-pro')
-                        response = model_fallback.generate_content(prompt)
-                        st.success("Análisis Exitoso (Legacy Mode)")
-                        st.markdown(response.text)
-                    except Exception as e2:
-                        st.error(f"Error de conexión con Google: {str(e2)}")
+                    st.error(f"Error de conexión: {str(e)}")
         else:
             st.warning("Escribe la descripción de tu proyecto.")
 else:
-    st.error("⚠️ Error: Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("⚠️ Falta la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
 st.info("Desarrollado para el Centro de Emprendimiento e Innovación.")
