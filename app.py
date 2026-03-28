@@ -11,7 +11,7 @@ api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
     try:
-        # CONFIGURACIÓN DE SEGURIDAD
+        # CONFIGURACIÓN ESTABLE
         genai.configure(api_key=api_key)
         
         # Formulario
@@ -22,14 +22,13 @@ if api_key:
 
         if boton:
             if descripcion:
-                with st.spinner("Conectando con el Mentor Senior..."):
-                    # LA SOLUCIÓN: Usamos el nombre del modelo sin prefijos raros
-                    # La librería se encargará de encontrar la ruta correcta
-                    model = genai.GenerativeModel('gemini-1.5-flash')
+                with st.spinner("Analizando propuesta con el modelo Pro..."):
+                    # USAMOS GEMINI-PRO PARA MÁXIMA COMPATIBILIDAD
+                    model = genai.GenerativeModel('gemini-pro')
                     
-                    prompt = f"Actúa como mentor experto en agronegocios. Proyecto: {descripcion}. Emprendedor: {nombre}."
+                    prompt = f"Actúa como mentor experto en agronegocios para {nombre}. Analiza: {descripcion}."
                     
-                    # Llamada directa
+                    # Llamada limpia
                     response = model.generate_content(prompt)
                     
                     st.success("¡Análisis Exitoso!")
@@ -37,9 +36,8 @@ if api_key:
             else:
                 st.warning("Por favor, describe tu proyecto.")
     except Exception as e:
-        st.error(f"Error de sistema: {str(e)}")
-        st.info("Sugerencia: Revisa que tu API Key sea válida en Google AI Studio.")
+        st.error(f"Nota técnica: {str(e)}")
 else:
-    st.error("⚠️ Falta la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("⚠️ Error: Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
 st.info("Desarrollado para el Centro de Emprendimiento e Innovación.")
