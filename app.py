@@ -1,7 +1,7 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuración de página
+# Configuración de la interfaz
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
 st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
@@ -10,43 +10,35 @@ st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    # CONFIGURACIÓN DIRECTA
-    # Al no especificar versión, la librería buscará la más estable por defecto
-    genai.configure(api_key=api_key)
-    
-    # Formulario
-    with st.form("mentoria_form"):
-        nombre = st.text_input("Nombre del Emprendedor")
-        descripcion = st.text_area("Descripción (Ej: Licores de Jergón Sacha, Cerveza Artesanal)")
-        boton = st.form_submit_button("Consultar Panel de Expertos")
+    try:
+        # CONFIGURACIÓN DE SEGURIDAD
+        genai.configure(api_key=api_key)
+        
+        # Formulario
+        with st.form("mentoria_form"):
+            nombre = st.text_input("Nombre del Emprendedor")
+            descripcion = st.text_area("Descripción (Ej: Licores de Jergón Sacha, Cerveza Artesanal)")
+            boton = st.form_submit_button("Consultar Panel de Expertos")
 
-    if boton:
-        if descripcion:
-            with st.spinner("Conectando con el Mentor Senior..."):
-                try:
-                    # Probamos con el nombre de modelo que Google tiene como estándar global
+        if boton:
+            if descripcion:
+                with st.spinner("Conectando con el Mentor Senior..."):
+                    # LA SOLUCIÓN: Usamos el nombre del modelo sin prefijos raros
+                    # La librería se encargará de encontrar la ruta correcta
                     model = genai.GenerativeModel('gemini-1.5-flash')
                     
-                    prompt = f"Actúa como mentor experto en agronegocios y licores de la selva. Analiza el proyecto {descripcion} de {nombre}. Dame 3 consejos estratégicos."
+                    prompt = f"Actúa como mentor experto en agronegocios. Proyecto: {descripcion}. Emprendedor: {nombre}."
                     
-                    # Llamada limpia sin argumentos extra que causen conflicto
+                    # Llamada directa
                     response = model.generate_content(prompt)
                     
                     st.success("¡Análisis Exitoso!")
                     st.markdown(response.text)
-                except Exception as e:
-                    st.error(f"Nota técnica: {str(e)}")
-                    st.info("Intentando conexión alternativa...")
-                    # Plan B automático
-                    try:
-                        model_pro = genai.GenerativeModel('gemini-pro')
-                        response_pro = model_pro.generate_content(prompt)
-                        st.success("¡Análisis Exitoso (Modo Pro)!")
-                        st.markdown(response_pro.text)
-                    except Exception as e2:
-                        st.error("No se pudo establecer la conexión. Verifica tu API Key en Google AI Studio.")
-        else:
-            st.warning("Por favor, escribe la descripción de tu proyecto.")
+            else:
+                st.warning("Por favor, describe tu proyecto.")
+    except Exception as e:
+        st.error(f"Error de sistema: {str(e)}")
+        st.info("Sugerencia: Revisa que tu API Key sea válida en Google AI Studio.")
 else:
     st.error("⚠️ Falta la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
