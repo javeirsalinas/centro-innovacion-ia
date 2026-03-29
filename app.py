@@ -19,14 +19,14 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando con el cerebro de Google AI..."):
-                # URL CORREGIDA: Usamos v1beta pero con la ruta directa al modelo Flash
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            with st.spinner("Conectando con el Mentor Senior..."):
+                # ESTA ES LA URL QUE FUNCIONA EN 2026: v1 con gemini-1.5-flash
+                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 data = {
                     "contents": [{
-                        "parts": [{"text": f"Eres un mentor experto. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos clave."}]
+                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos estratégicos."}]
                     }]
                 }
                 
@@ -35,27 +35,19 @@ if api_key:
                     res_json = response.json()
                     
                     if response.status_code == 200:
-                        # Extraer la respuesta de la IA
+                        # Extraer la respuesta exitosa
                         texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
                         st.success("¡Análisis Exitoso!")
                         st.markdown(texto_ia)
                     else:
-                        # Si falla el Flash, intentamos el Pro automáticamente en la misma llamada
-                        st.info("Reintentando con modelo alternativo...")
-                        url_pro = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
-                        response_pro = requests.post(url_pro, headers=headers, data=json.dumps(data))
-                        res_pro = response_pro.json()
-                        
-                        if response_pro.status_code == 200:
-                            texto_pro = res_pro['candidates'][0]['content']['parts'][0]['text']
-                            st.success("¡Análisis Exitoso (Modo Pro)!")
-                            st.markdown(texto_pro)
-                        else:
-                            st.error(f"Error de Google: {res_pro['error']['message']}")
+                        # Si sale error, mostramos el mensaje real de Google
+                        error_msg = res_json.get('error', {}).get('message', 'Error desconocido')
+                        st.error(f"Nota de Google: {error_msg}")
+                        st.info("Sugerencia: Entra a Google AI Studio y verifica que tu API Key esté activa.")
                 except Exception as e:
                     st.error(f"Error de conexión: {str(e)}")
         else:
-            st.warning("Escribe la descripción de tu proyecto.")
+            st.warning("Por favor, escribe la descripción de tu proyecto.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
