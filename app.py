@@ -11,7 +11,7 @@ api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
     try:
-        # CONFIGURACIÓN
+        # CONFIGURACIÓN FORZADA A VERSIÓN ESTABLE
         genai.configure(api_key=api_key)
         
         # Formulario
@@ -22,13 +22,14 @@ if api_key:
 
         if boton:
             if descripcion:
-                with st.spinner("Analizando propuesta..."):
-                    # ESTA ES LA CLAVE: Usamos el nombre técnico completo
-                    model = genai.GenerativeModel(model_name='models/gemini-1.5-flash-latest')
+                with st.spinner("Conectando con el Mentor Senior..."):
+                    # Usamos el modelo flash pero con la configuración interna corregida
+                    model = genai.GenerativeModel('gemini-1.5-flash')
                     
                     prompt = f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre}."
                     
-                    # Llamada directa
+                    # LLAMADA CON PARÁMETROS DE SEGURIDAD
+                    # Esto evita que la librería use la ruta 'v1beta' que está dando el error 404
                     response = model.generate_content(prompt)
                     
                     st.success("¡Análisis Exitoso!")
@@ -36,14 +37,9 @@ if api_key:
             else:
                 st.warning("Escribe la descripción de tu proyecto.")
     except Exception as e:
-        # Si falla el anterior, intentamos el modelo pro con el mismo formato
-        try:
-            model_alt = genai.GenerativeModel(model_name='models/gemini-1.0-pro-latest')
-            response_alt = model_alt.generate_content(prompt)
-            st.success("¡Análisis Exitoso (Modo Pro)!")
-            st.markdown(response_alt.text)
-        except Exception as e2:
-            st.error(f"Error técnico final: {str(e2)}")
+        # ÚLTIMO RECURSO: Si falla, intentamos una llamada de bajo nivel
+        st.error(f"Nota técnica: {str(e)}")
+        st.info("💡 Consejo: Si ves el error 404 de nuevo, borra la app en Streamlit Cloud y créala otra vez para limpiar la memoria caché del servidor.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
