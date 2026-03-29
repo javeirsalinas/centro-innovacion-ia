@@ -116,7 +116,7 @@ if api_key:
                 # URL del motor Gemini 2.5 Flash-Lite
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
                 
-                # Prompt con enfoque Agéntico y límite de extensión para el PDF
+                # Prompt con enfoque Agéntico
                 contexto_canvas = f"Propuesta:{propuesta}, Clientes:{segmentos}, Canales:{canales}, Relación:{relaciones}, Ingresos:{ingresos}, Recursos:{recursos}, Actividades:{actividades}, Socios:{socios}, Costos:{costos}"
                 
                 prompt = f"""
@@ -138,7 +138,7 @@ if api_key:
                 payload = {"contents": [{"parts": [{"text": prompt}]}]}
                 
                 try:
-                    response = requests.post(url, json=payload)
+                    response = requests.post(url, json=payload, timeout=30)
                     if response.status_code == 200:
                         diagnostico = response.json()['candidates'][0]['content']['parts'][0]['text']
                         
@@ -155,16 +155,17 @@ if api_key:
                             file_name=f"Reporte_Agentico_{empresa}.pdf",
                             mime="application/pdf"
                         )
-                        st.info(f"Copia enviada virtualmente a {email}")
+                        st.info(f"Reporte preparado para {email}")
                     else:
-                        st.error("Error al conectar con la Red Agéntica de Google.")
+                        st.error("Error al conectar con la Red de Google AI.")
                 except Exception as e:
-                    st.error(f"Falla de red: {e}")
+                    st.error(f"Falla de red: {str(e)}")
         else:
             st.warning("⚠️ Por favor, completa los datos de registro y la Propuesta de Valor.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
+# --- BARRA LATERAL ---
 st.sidebar.markdown("---")
-st.sidebar.image("https://via.placeholder.com/150x50/0E8388/FFFFFF?text=RedInnovacion.pe", use_container_width=True)
-st.sidebar.write("Desarrollado por el Centro de Emprendimiento e Innov
+st.sidebar.write("### RedInnovacion.pe")
+st.sidebar.write("Centro de Emprendimiento e Innovación Tecnológica 2026.")
