@@ -1,36 +1,33 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuración de la interfaz
-st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
+# Configuración básica
+st.set_page_config(page_title="Centro de Innovación AI", page_icon="🚀")
 st.title("🚀 AgentLake: Centro de Innovación")
-st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
+st.write("Proyecto: **COLPA DE COPA**")
 
-# Obtener la API KEY de los Secrets
+# 1. Conexión con la llave secreta
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    try:
-        genai.configure(api_key=api_key)
-        
-        with st.form("mentoria_form"):
-            nombre = st.text_input("Nombre del Emprendedor")
-            descripcion = st.text_area("Descripción (Ej: Licores de Jergón Sacha, Cerveza Artesanal)")
-            boton = st.form_submit_button("Consultar Panel de Expertos")
+    genai.configure(api_key=api_key)
+    
+    # 2. Formulario de entrada
+    nombre = st.text_input("Tu Nombre")
+    descripcion = st.text_area("Descripción de tu innovación (Ej: Licores de la selva)")
 
-        if boton:
-            if descripcion:
-                with st.spinner("Analizando propuesta..."):
-                    # Usamos el modelo Pro por su alta compatibilidad
-                    model = genai.GenerativeModel('gemini-pro')
-                    prompt = f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre}."
-                    response = model.generate_content(prompt)
-                    
-                    st.success("¡Análisis Exitoso!")
-                    st.markdown(response.text)
-            else:
-                st.warning("Por favor, escribe la descripción de tu proyecto.")
-    except Exception as e:
-        st.error(f"Nota técnica: {str(e)}")
+    if st.button("Obtener Mentoría"):
+        if descripcion:
+            try:
+                # Intentamos con el modelo Pro (el más compatible)
+                model = genai.GenerativeModel('gemini-pro')
+                response = model.generate_content(f"Soy mentor de negocios. Analiza: {descripcion}")
+                
+                st.success(f"¡Listo, {nombre}!")
+                st.markdown(response.text)
+            except Exception as e:
+                st.error(f"Nota técnica: {str(e)}")
+        else:
+            st.warning("Por favor, cuéntanos sobre tu proyecto.")
 else:
-    st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("Falta configurar la GOOGLE_API_KEY en los Secrets.")
