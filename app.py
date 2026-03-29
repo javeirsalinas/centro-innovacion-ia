@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 
-# Configuración de interfaz
+# Configuración de página
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
 st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
@@ -19,9 +19,10 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando directamente con Google AI..."):
-                # URL FORZADA A LA VERSIÓN ESTABLE v1
-                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+            with st.spinner("Accediendo al servidor de Google AI..."):
+                # URL DEFINITIVA: Usamos v1beta pero con el modelo específico 'gemini-1.5-flash-latest'
+                # Esta es la ruta que Google garantiza para llamadas directas
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
@@ -39,11 +40,20 @@ if api_key:
                         st.success("¡Análisis Exitoso!")
                         st.markdown(texto_ia)
                     else:
-                        st.error(f"Error de Google ({response.status_code}): {res_json['error']['message']}")
+                        # Si falla el flash, intentamos el gemini-pro original
+                        url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+                        response_alt = requests.post(url_alt, headers=headers, data=json.dumps(payload))
+                        res_alt = response_alt.json()
+                        
+                        if response_alt.status_code == 200:
+                            st.success("¡Análisis Exitoso (Modo Pro)!")
+                            st.markdown(res_alt['candidates'][0]['content']['parts'][0]['text'])
+                        else:
+                            st.error(f"Error de Google: {res_alt['error']['message']}")
                 except Exception as e:
-                    st.error(f"Error de red: {str(e)}")
+                    st.error(f"Error de conexión: {str(e)}")
         else:
-            st.warning("Por favor, describe tu proyecto.")
+            st.warning("Escribe la descripción de tu proyecto.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
