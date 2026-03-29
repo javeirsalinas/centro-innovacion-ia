@@ -19,14 +19,14 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando directamente con Google AI..."):
-                # URL DIRECTA A LA VERSIÓN ESTABLE (v1)
-                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+            with st.spinner("Conectando con el cerebro de Google AI..."):
+                # URL CORREGIDA: Usamos v1beta pero con la ruta directa al modelo Flash
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 data = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como mentor experto en agronegocios para {nombre}. Analiza el proyecto {descripcion} de COLPA DE COPA en la selva peruana. Dame 3 consejos estratégicos."}]
+                        "parts": [{"text": f"Eres un mentor experto. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos clave."}]
                     }]
                 }
                 
@@ -40,7 +40,18 @@ if api_key:
                         st.success("¡Análisis Exitoso!")
                         st.markdown(texto_ia)
                     else:
-                        st.error(f"Error de Google: {res_json['error']['message']}")
+                        # Si falla el Flash, intentamos el Pro automáticamente en la misma llamada
+                        st.info("Reintentando con modelo alternativo...")
+                        url_pro = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+                        response_pro = requests.post(url_pro, headers=headers, data=json.dumps(data))
+                        res_pro = response_pro.json()
+                        
+                        if response_pro.status_code == 200:
+                            texto_pro = res_pro['candidates'][0]['content']['parts'][0]['text']
+                            st.success("¡Análisis Exitoso (Modo Pro)!")
+                            st.markdown(texto_pro)
+                        else:
+                            st.error(f"Error de Google: {res_pro['error']['message']}")
                 except Exception as e:
                     st.error(f"Error de conexión: {str(e)}")
         else:
