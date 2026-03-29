@@ -4,8 +4,8 @@ import json
 from fpdf import FPDF
 import datetime
 
-# 1. Configuración de Marca y Estilo
-st.set_page_config(page_title="RedInnovacion.pe | Mentoría BMC Pro", page_icon="🇵🇪", layout="wide")
+# 1. Configuración de Marca y Estilo de la App
+st.set_page_config(page_title="RedInnovacion.pe | Mentoría Pro", page_icon="🚀", layout="wide")
 
 st.markdown("""
     <style>
@@ -15,105 +15,128 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Función para generar el PDF Profesional
-def create_pdf(nombre, empresa, region, resultado, bmc_data):
-    # Configuración de página con fondo oscuro
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+# 2. Clase PDF personalizada para Modo Oscuro y Control de Páginas
+class DarkPDF(FPDF):
+    def header(self):
+        # Fondo oscuro en cada página
+        self.set_fill_color(18, 18, 18) 
+        self.rect(0, 0, 210, 297, 'F')
+        # Logo de RedInnovacion.pe
+        self.set_font("Arial", 'B', 15)
+        self.set_text_color(14, 131, 136)
+        self.cell(0, 10, "RedInnovacion.pe", ln=True, align='L')
+        self.ln(5)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Arial", 'I', 8)
+        self.set_text_color(100, 100, 100)
+        self.cell(0, 10, f"Página {self.page_no()} | Centro de Innovación Tecnológica 2026", align='C')
+
+def create_dark_pdf(nombre, empresa, region, resultado):
+    pdf = DarkPDF()
+    pdf.set_auto_page_break(auto=True, margin=20)
     pdf.add_page()
     
-    # --- PÁGINA 1: Carátula y Diagnóstico Principal ---
-    # Fondo Oscuro (Rectángulo que cubre toda la página)
-    pdf.set_fill_color(18, 18, 18) # Gris casi negro #121212
-    pdf.rect(0, 0, 210, 297, 'F')
+    # Título Principal
+    pdf.set_font("Arial", 'B', 22)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(0, 15, txt="DIAGNÓSTICO ESTRATÉGICO", ln=True)
     
-    # Logo / Nombre de Marca
-    pdf.set_font("Arial", 'B', 24)
-    pdf.set_text_color(14, 131, 136) # Verde Esmeralda RedInnovacion
-    pdf.cell(0, 20, txt="RedInnovacion.pe", ln=True, align='L')
-    
-    # Título del Reporte
-    pdf.set_font("Arial", 'B', 14)
-    pdf.set_text_color(255, 255, 255) # Blanco
-    pdf.cell(0, 10, txt="REPORTE ESTRATEGICO DE MENTORIA", ln=True)
-    pdf.ln(5)
-    
-    # Datos del Emprendedor (En caja resaltada)
-    pdf.set_fill_color(30, 30, 30)
-    pdf.set_text_color(200, 200, 200)
-    pdf.set_font("Arial", '', 10)
-    info_user = f"Emprendedor: {nombre}  |  Empresa: {empresa}  |  Region: {region}  |  Fecha: {datetime.date.today()}"
-    pdf.cell(0, 10, txt=info_user, ln=True, fill=True, align='C')
-    
-    # Contenido del Diagnóstico (Parte 1)
-    pdf.ln(10)
-    pdf.set_font("Arial", 'B', 12)
+    # Ficha Técnica
+    pdf.set_font("Arial", 'B', 10)
     pdf.set_text_color(14, 131, 136)
-    pdf.cell(0, 10, txt="1. ANALISIS DEL MODELO DE NEGOCIO", ln=True)
+    pdf.cell(0, 8, txt=f"PROYECTO: {empresa.upper()}", ln=True)
+    pdf.set_text_color(200, 200, 200)
+    pdf.cell(0, 8, txt=f"EMPRENDEDOR: {nombre} | REGIÓN: {region} | FECHA: {datetime.date.today()}", ln=True)
+    pdf.ln(10)
     
-    pdf.set_font("Arial", '', 10)
+    # Contenido del Diagnóstico
+    pdf.set_font("Arial", '', 11)
     pdf.set_text_color(240, 240, 240)
-    # Limpieza de texto para evitar errores de codificación
-    clean_text = resultado.encode('latin-1', 'replace').decode('latin-1')
     
-    # Controlamos que el texto fluya (FPDF creará la pág 2 automáticamente si es necesario)
-    pdf.multi_cell(0, 7, txt=clean_text)
-
-    # --- PIE DE PÁGINA ---
-    # Nos aseguramos de poner un cierre visual al final de la página 2
-    if pdf.page_no() > 2:
-        # Si por alguna razón la IA se excede, cortamos aquí (opcional)
-        pass 
-
+    # Limpiamos texto para evitar errores de símbolos
+    clean_text = resultado.encode('latin-1', 'replace').decode('latin-1')
+    pdf.multi_cell(0, 8, txt=clean_text)
+    
+    # Forzar límite visual (Opcional: solo avisar si pasa de 2)
     return pdf.output(dest='S').encode('latin-1')
 
-        # Bloques 6, 7, 8 y 9
-        col3, col4 = st.columns(2)
-        with col3:
-            st.markdown('<p class="canvas-header">6. RECURSOS CLAVE</p>', unsafe_allow_html=True)
-            recursos = st.text_area("¿Qué necesitas para operar?", height=80)
-            st.markdown('<p class="canvas-header">7. ACTIVIDADES CLAVE</p>', unsafe_allow_html=True)
-            actividades = st.text_area("¿Qué haces día a día?", height=80)
-        with col4:
-            st.markdown('<p class="canvas-header">8. SOCIOS CLAVE</p>', unsafe_allow_html=True)
-            socios = st.text_area("¿Quiénes son tus aliados?", height=80)
-            st.markdown('<p class="canvas-header">9. ESTRUCTURA DE COSTOS</p>', unsafe_allow_html=True)
-            costos = st.text_area("¿En qué gastas dinero?", height=80)
+# --- INTERFAZ STREAMLIT ---
+st.markdown('<p class="main-title">🚀 RedInnovacion.pe: Consultoría Elite</p>', unsafe_allow_html=True)
 
-        st.markdown("---")
-        enviar = st.form_submit_button("🚀 Generar Mentoría y Reporte PDF")
+api_key = st.secrets.get("GOOGLE_API_KEY")
+
+if api_key:
+    with st.form("form_red_innovacion"):
+        st.markdown('<p class="section-header">👤 DATOS DE CONTACTO</p>', unsafe_allow_html=True)
+        c1, c2, c3 = st.columns(3)
+        nombre = c1.text_input("Nombre")
+        empresa = c2.text_input("Emprendimiento")
+        region = c3.selectbox("Región", ["Lima", "Ucayali", "Cusco", "Arequipa", "Loreto", "Piura", "Otros..."])
+        
+        email = st.text_input("Correo")
+        whatsapp = st.text_input("WhatsApp")
+
+        st.markdown('<p class="section-header">📊 BUSINESS MODEL CANVAS (Resumen Ejecutivo)</p>', unsafe_allow_html=True)
+        propuesta = st.text_area("1. Propuesta de Valor")
+        
+        col_a, col_b = st.columns(2)
+        segmentos = col_a.text_area("2. Segmentos de Clientes")
+        canales = col_b.text_area("3. Canales")
+        
+        col_c, col_d = st.columns(2)
+        relaciones = col_c.text_area("4. Relación con Clientes")
+        ingresos = col_d.text_area("5. Fuentes de Ingresos")
+        
+        col_e, col_f = st.columns(2)
+        recursos = col_e.text_area("6. Recursos Clave")
+        actividades = col_f.text_area("7. Actividades Clave")
+        
+        col_g, col_h = st.columns(2)
+        socios = col_g.text_area("8. Socios Clave")
+        costos = col_h.text_area("9. Estructura de Costos")
+
+        enviar = st.form_submit_button("🔥 Generar Reporte Dark Mode")
 
     if enviar:
         if nombre and propuesta and email:
-            with st.spinner("Analizando tu modelo de negocio con Gemini 2.5..."):
+            with st.spinner("IA analizando..."):
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
                 
-                bmc_full = f"1.Propuesta:{propuesta}, 2.Segmentos:{segmentos}, 3.Canales:{canales}, 4.Relación:{relaciones}, 5.Ingresos:{ingresos}, 6.Recursos:{recursos}, 7.Actividades:{actividades}, 8.Socios:{socios}, 9.Costos:{costos}"
+                # INSTRUCCIÓN PARA CONTROLAR EXTENSIÓN
+                prompt = f"""
+                Eres un consultor senior de RedInnovacion.pe. 
+                Analiza el BMC de {empresa} ({nombre}) en {region}. 
+                DATOS: {propuesta}, {segmentos}, {canales}, {ingresos}, {costos}.
                 
-                prompt = f"Eres el consultor senior de RedInnovacion.pe. Emprendedor: {nombre}, Empresa: {empresa}, Región: {region}. Analiza este BMC: {bmc_full}. Da un diagnóstico y 3 consejos. Menciona que el PDF está listo abajo."
+                ESTRUCTURA OBLIGATORIA (Máximo 600 palabras para que entre en 2 páginas):
+                1. RESUMEN EJECUTIVO (Párrafo corto).
+                2. ANÁLISIS DE COHERENCIA (Puntos clave).
+                3. RIESGOS DETECTADOS (Top 2).
+                4. HOJA DE RUTA (3 pasos inmediatos).
+                5. CONSEJO REGIONAL (Específico para {region}).
+                
+                Usa un tono corporativo y motivador. No uses negritas (**) en el texto para el PDF.
+                """
                 
                 payload = {"contents": [{"parts": [{"text": prompt}]}]}
+                resp = requests.post(url, json=payload)
                 
-                try:
-                    resp = requests.post(url, json=payload)
-                    if resp.status_code == 200:
-                        diagnostico = resp.json()['candidates'][0]['content']['parts'][0]['text']
-                        st.success(f"¡Análisis Completado para {empresa}!")
-                        st.markdown(diagnostico)
-                        
-                        # Generar y mostrar botón PDF
-                        pdf_data = create_pdf(nombre, empresa, region, diagnostico, bmc_full)
-                        st.download_button(
-                            label="📥 Descargar Reporte PDF Profesional",
-                            data=pdf_data,
-                            file_name=f"Reporte_RedInnovacion_{empresa}.pdf",
-                            mime="application/pdf"
-                        )
-                    else:
-                        st.error("Error en la IA. Intenta de nuevo.")
-                except Exception as e:
-                    st.error(f"Fallo de conexión: {e}")
-        else:
-            st.warning("Completa los datos de registro y al menos la Propuesta de Valor.")
+                if resp.status_code == 200:
+                    diagnostico = resp.json()['candidates'][0]['content']['parts'][0]['text']
+                    st.success("¡Diagnóstico Estratégico Generado!")
+                    st.markdown(diagnostico)
+                    
+                    # Botón PDF
+                    pdf_bytes = create_dark_pdf(nombre, empresa, region, diagnostico)
+                    st.download_button(
+                        label="📥 Descargar Reporte en Modo Oscuro (PDF)",
+                        data=pdf_bytes,
+                        file_name=f"Reporte_RedInnovacion_{empresa}.pdf",
+                        mime="application/pdf"
+                    )
+                else:
+                    st.error("Error en la conexión con la IA.")
 else:
-    st.error("⚠️ Configura la API KEY en los Secrets.")
+    st.error("Configura la API KEY en los Secrets.")
