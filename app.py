@@ -1,51 +1,37 @@
 import streamlit as st
 import requests
-import json
 
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
-st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
+st.write("Proyecto: **COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)**")
 
+# 1. Cargar la llave desde Secrets
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    with st.form("mentoria_form"):
-        nombre = st.text_input("Nombre del Emprendedor")
-        descripcion = st.text_area("Descripción (Ej: Licores de la selva peruana)")
-        boton = st.form_submit_button("Consultar Mentoría")
-
-    if boton and descripcion:
-        # LISTA DE MODELOS A PROBAR (Los más comunes)
-        modelos_a_probar = [
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
-            "gemini-pro"
-        ]
-        
-        exito = False
-        for modelo in modelos_a_probar:
-            if exito: break
-            
-            with st.spinner(f"Probando conexión con {modelo}..."):
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent?key={api_key}"
-                headers = {'Content-Type': 'application/json'}
-                data = {"contents": [{"parts": [{"text": f"Eres mentor de negocios. Analiza: {descripcion}"}]}]}
+    descripcion = st.text_area("Cuéntanos sobre tu innovación en la selva:")
+    
+    if st.button("Consultar Mentoría"):
+        if descripcion:
+            with st.spinner("Llamando al mentor..."):
+                # URL UNIVERSAL DE 2026
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+                
+                payload = {
+                    "contents": [{"parts": [{"text": f"Eres un mentor experto. Analiza este proyecto de licores en la selva peruana: {descripcion}"}]}]
+                }
                 
                 try:
-                    response = requests.post(url, headers=headers, data=json.dumps(data))
-                    res_json = response.json()
+                    response = requests.post(url, json=payload)
+                    data = response.json()
                     
                     if response.status_code == 200:
-                        texto = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success(f"¡Análisis Exitoso con {modelo}!")
-                        st.markdown(texto)
-                        exito = True
+                        st.success("¡Conexión exitosa!")
+                        st.markdown(data['candidates'][0]['content']['parts'][0]['text'])
                     else:
-                        continue # Prueba el siguiente modelo
-                except:
-                    continue
-
-        if not exito:
-            st.error("No se pudo conectar con ningún modelo de Google. Por favor, verifica que tu NUEVA API Key esté activa en Google AI Studio.")
+                        # Si sale error, mostramos el mensaje exacto para saber qué falta
+                        st.error(f"Error {response.status_code}: {data['error']['message']}")
+                except Exception as e:
+                    st.error(f"Falla de red: {str(e)}")
 else:
-    st.error("⚠️ Configura la NUEVA GOOGLE_API_KEY en Secrets.")
+    st.error("⚠️ No hay API Key en los Secrets de Streamlit.")
