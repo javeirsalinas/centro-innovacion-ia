@@ -19,15 +19,14 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando con el servidor estable de Google..."):
-                # URL CORREGIDA: Usamos la versión 'v1' y el modelo 'gemini-1.5-flash'
-                # Esta es la ruta oficial que Google garantiza para 2026
-                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+            with st.spinner("Buscando canal de conexión con Google AI..."):
+                # PROBAMOS LA RUTA QUE SÍ ESTÁ ACTIVA EN MARZO 2026
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos estratégicos."}]
+                        "parts": [{"text": f"Eres un mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre}."}]
                     }]
                 }
                 
@@ -37,16 +36,21 @@ if api_key:
                     
                     if response.status_code == 200:
                         texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success("¡Análisis Exitoso!")
+                        st.success("¡Conexión Exitosa!")
                         st.markdown(texto_ia)
                     else:
-                        # Si sale error, mostramos el mensaje exacto de Google
-                        st.error(f"Error de Google: {res_json['error']['message']}")
-                        st.info("Sugerencia: Revisa que tu API Key en Google AI Studio no tenga restricciones de país.")
+                        # Si falla el anterior, intentamos con el nombre corto
+                        url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+                        response_alt = requests.post(url_alt, headers=headers, data=json.dumps(payload))
+                        
+                        if response_alt.status_code == 200:
+                            st.success("¡Conexión Exitosa (Ruta Alternativa)!")
+                            st.markdown(response_alt.json()['candidates'][0]['content']['parts'][0]['text'])
+                        else:
+                            st.error(f"Error de Google: {res_json.get('error', {}).get('message', 'Error desconocido')}")
+                            st.info("💡 Tip: Ve a Google AI Studio y verifica que el chat te responda ahí mismo.")
                 except Exception as e:
                     st.error(f"Error de red: {str(e)}")
-        else:
-            st.warning("Por favor, describe tu proyecto.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
