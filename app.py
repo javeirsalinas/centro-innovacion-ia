@@ -1,60 +1,46 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Configuración de la interfaz
+# Configuración de página
 st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
 st.title("🚀 AgentLake: Centro de Innovación")
 st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
 
-# 2. Configuración de Seguridad
+# 1. Obtener la API KEY de los Secrets
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
     try:
-        # Configuración simple (la librería elegirá la mejor ruta automáticamente)
+        # CONFIGURACIÓN ESTABLE
         genai.configure(api_key=api_key)
         
-        # Formulario de entrada
-        with st.form("form_mentoria"):
+        # Formulario
+        with st.form("mentoria_form"):
             nombre = st.text_input("Nombre del Emprendedor")
-            descripcion = st.text_area("Cuéntanos de tu proyecto (Ej: Licores de Jergón Sacha)")
-            enviar = st.form_submit_button("Iniciar Auditoría con IA")
+            descripcion = st.text_area("Descripción (Ej: Licores de la selva peruana)")
+            boton = st.form_submit_button("Consultar Mentoría")
 
-        if enviar:
+        if boton:
             if descripcion:
-                with st.spinner("El Panel de Expertos está analizando tu propuesta..."):
-                    try:
-                        # Usamos el modelo flash con su nombre estándar
-                        model = genai.GenerativeModel('gemini-1.5-flash')
-                        
-                        prompt = f"""
-                        Actúa como mentor senior experto en agronegocios y licores.
-                        Emprendedor: {nombre}
-                        Proyecto: COLPA DE COPA
-                        Descripción: {descripcion}
-                        
-                        Dame 3 consejos estratégicos para este negocio en la selva peruana 
-                        y una puntuación de viabilidad del 1 al 10.
-                        """
-                        
-                        # Llamada limpia (sin RequestOptions para evitar conflictos de versión)
-                        response = model.generate_content(prompt)
-                        
-                        st.success(f"¡Análisis completado para {nombre}!")
-                        st.markdown(response.text)
-                        
-                    except Exception as e:
-                        # Plan B: Si el anterior falla, intentamos el modelo Pro
-                        model_alt = genai.GenerativeModel('gemini-pro')
-                        response_alt = model_alt.generate_content(prompt)
-                        st.success("Análisis completado (Modo Estabilidad)")
-                        st.markdown(response_alt.text)
+                with st.spinner("Conectando con el Mentor Senior..."):
+                    # USAMOS EL MODELO MÁS MODERNO Y ESTABLE
+                    model = genai.GenerativeModel('gemini-1.5-flash')
+                    
+                    prompt = f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos estratégicos."
+                    
+                    # Llamada limpia
+                    response = model.generate_content(prompt)
+                    
+                    st.success("¡Análisis Exitoso!")
+                    st.markdown(response.text)
             else:
-                st.warning("Por favor, describe tu proyecto.")
-                
-    except Exception as e_final:
-        st.error(f"Error de sistema: {str(e_final)}")
+                st.warning("Por favor, escribe la descripción de tu proyecto.")
+    except Exception as e:
+        # Si sale el error 404, mostramos una guía clara
+        st.error(f"Nota de Google: {str(e)}")
+        if "404" in str(e):
+            st.info("💡 **Tip Técnico:** Tu API Key podría estar restringida a una región o versión. Intenta crear una NUEVA API Key en Google AI Studio.")
 else:
-    st.error("⚠️ No se encontró la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
 st.info("Desarrollado para el Centro de Emprendimiento e Innovación.")
