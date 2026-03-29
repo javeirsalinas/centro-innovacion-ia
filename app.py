@@ -2,31 +2,62 @@ import streamlit as st
 import requests
 import json
 
-# Configuración de interfaz
-st.set_page_config(page_title="Centro de Innovación AI", layout="wide")
-st.title("🚀 AgentLake: Centro de Innovación")
-st.subheader("Proyecto: COLPA DE COPA (MULTISERVICIOS DAMAR S.A.C)")
+# 1. Configuración de identidad visual
+st.set_page_config(
+    page_title="RedInnovacion.pe | Centro de Innovación", 
+    page_icon="🚀",
+    layout="wide"
+)
 
-# 1. Obtener la API KEY de los Secrets
+# Estilo personalizado para el nombre
+st.markdown("""
+    <style>
+    .main-title {
+        color: #0E8388;
+        font-size: 40px;
+        font-weight: bold;
+    }
+    .subtitle {
+        color: #2E4F4F;
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+st.markdown('<p class="main-title">🚀 RedInnovacion.pe</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Centro de Emprendimiento e Innovación Tecnológica</p>', unsafe_allow_html=True)
+
+st.divider()
+
+# 2. Configuración de la API (Gemini 2.5 Flash-Lite)
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    # Formulario
-    with st.form("mentoria_form"):
-        nombre = st.text_input("Nombre del Emprendedor")
-        descripcion = st.text_area("Descripción (Ej: Licores de la selva peruana)")
-        boton = st.form_submit_button("Consultar Mentoría 2.5 Flash-Lite")
+    # Formulario de Mentoría
+    with st.container():
+        st.info("💡 Bienvenido al Panel de Mentoría Digital. Cuéntanos sobre tu proyecto para recibir un análisis estratégico instantáneo.")
+        
+        with st.form("mentoria_redinnovacion"):
+            col1, col2 = st.columns(2)
+            with col1:
+                nombre = st.text_input("Nombre del Emprendedor")
+            with col2:
+                proyecto = st.text_input("Nombre del Proyecto / Idea")
+                
+            descripcion = st.text_area("Describe tu propuesta, tus retos y tus metas:")
+            
+            boton = st.form_submit_button("Obtener Mentoría Estratégica")
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando con el motor Gemini 2.5 Flash-Lite..."):
-                # URL PARA GEMINI 2.5 FLASH-LITE (Versión 2026)
+            with st.spinner("Analizando con el motor de IA de RedInnovacion.pe..."):
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y brinda 3 consejos estratégicos."}]
+                        "parts": [{"text": f"Actúa como un mentor senior de RedInnovacion.pe, un centro de emprendimiento e innovación en Perú. Analiza el proyecto '{proyecto}' de {nombre}. Descripción: {descripcion}. Brinda una hoja de ruta con 3 pasos críticos, consejos de escalabilidad y una frase de motivación inspiradora."}]
                     }]
                 }
                 
@@ -35,19 +66,24 @@ if api_key:
                     res_json = response.json()
                     
                     if response.status_code == 200:
-                        texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success("¡Conexión Exitosa con Gemini 2.5!")
-                        st.markdown(texto_ia)
+                        resultado = res_json['candidates'][0]['content']['parts'][0]['text']
+                        st.success(f"¡Análisis Generado Exitosamente para {proyecto}!")
+                        st.markdown("---")
+                        st.markdown(resultado)
+                        st.markdown("---")
+                        st.caption("Respuesta generada por el motor Gemini 2.5 Flash-Lite - RedInnovacion.pe © 2026")
                     else:
-                        # Error detallado para diagnóstico
-                        error_msg = res_json.get('error', {}).get('message', 'Modelo no disponible')
-                        st.error(f"Nota de Google: {error_msg}")
-                        st.info("💡 Tip: Si el error persiste, verifica en AI Studio si el nombre tiene algún sufijo como '-exp' o '-001'.")
+                        st.error("Hubo un problema al conectar con el servidor. Inténtalo de nuevo en unos segundos.")
                 except Exception as e:
-                    st.error(f"Error de red: {str(e)}")
+                    st.error(f"Error de conexión: {str(e)}")
         else:
-            st.warning("Por favor, describe tu proyecto.")
+            st.warning("Por favor, ingresa los detalles de tu proyecto para iniciar el análisis.")
 else:
-    st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
+    st.error("⚠️ Error de configuración: La clave de acceso no está vinculada. Contacta al soporte técnico de RedInnovacion.pe")
 
-st.info("Sistema actualizado al motor de última generación Gemini 2.5.")
+# Pie de página profesional
+st.sidebar.title("Sobre Nosotros")
+st.sidebar.info("""
+**RedInnovacion.pe** es el ecosistema líder para el desarrollo de emprendimientos tecnológicos en la región. 
+Nuestra misión es potenciar el talento local mediante el uso de Inteligencia Artificial avanzada.
+""")
