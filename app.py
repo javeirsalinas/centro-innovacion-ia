@@ -20,14 +20,13 @@ if api_key:
     if boton:
         if descripcion:
             with st.spinner("Estableciendo conexión segura con Google AI..."):
-                # URL CON EL MODELO ESPECÍFICO DE ALTA COMPATIBILIDAD (Gemini 1.5 Flash - Versión 002)
-                # Esta ruta es la más estable para regiones fuera de EE.UU.
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent?key={api_key}"
+                # URL UNIVERSAL: Usamos la versión estable v1 y el modelo base
+                url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana."}]
+                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos estratégicos."}]
                     }]
                 }
                 
@@ -39,19 +38,20 @@ if api_key:
                         texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
                         st.success("¡Análisis Exitoso!")
                         st.markdown(texto_ia)
-                    else:
-                        # Si falla el anterior, intentamos con el modelo Pro 002
-                        url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-002:generateContent?key={api_key}"
-                        response_alt = requests.post(url_alt, headers=headers, data=json.dumps(payload))
-                        
-                        if response_alt.status_code == 200:
-                            st.success("¡Análisis Exitoso (Ruta Pro)!")
-                            st.markdown(response_alt.json()['candidates'][0]['content']['parts'][0]['text'])
+                    elif response.status_code == 404:
+                        st.error("Error 404: Google no encuentra el modelo en esta región. Intentando ruta alternativa...")
+                        # Intento con modelo Pro si Flash no responde
+                        url_pro = f"https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key={api_key}"
+                        response_pro = requests.post(url_pro, headers=headers, data=json.dumps(payload))
+                        if response_pro.status_code == 200:
+                            st.success("¡Conectado con éxito al modelo alternativo!")
+                            st.markdown(response_pro.json()['candidates'][0]['content']['parts'][0]['text'])
                         else:
-                            st.error(f"Error de Google: {res_json.get('error', {}).get('message', 'Error desconocido')}")
-                            st.info("💡 Tip: Verifica que tu API Key en AI Studio esté marcada como 'Free Tier'.")
+                            st.error("No se pudo conectar. Por favor, verifica tu API Key en AI Studio.")
+                    else:
+                        st.error(f"Error {response.status_code}: {res_json.get('error', {}).get('message', 'Error desconocido')}")
                 except Exception as e:
-                    st.error(f"Error de red: {str(e)}")
+                    st.error(f"Falla de red: {str(e)}")
         else:
             st.warning("Por favor, describe tu proyecto.")
 else:
