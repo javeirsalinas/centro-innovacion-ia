@@ -15,18 +15,18 @@ if api_key:
     with st.form("mentoria_form"):
         nombre = st.text_input("Nombre del Emprendedor")
         descripcion = st.text_area("Descripción (Ej: Licores de la selva peruana)")
-        boton = st.form_submit_button("Consultar Mentoría con Gemini 2.0")
+        boton = st.form_submit_button("Consultar Mentoría 2026")
 
     if boton:
         if descripcion:
-            with st.spinner("Conectando con Gemini 2.0 Flash..."):
-                # URL PARA GEMINI 2.0 FLASH (La versión más moderna de 2026)
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+            with st.spinner("Conectando con el motor Gemini 2.0 (Producción)..."):
+                # URL PARA GEMINI 2.0 FLASH - VERSIÓN DE PRODUCCIÓN 001
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-001:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Eres un mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y da 3 consejos estratégicos."}]
+                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana y brinda una hoja de ruta técnica."}]
                     }]
                 }
                 
@@ -36,11 +36,19 @@ if api_key:
                     
                     if response.status_code == 200:
                         texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success("¡Conexión Exitosa con Gemini 2.0!")
+                        st.success("¡Conexión Exitosa con la Red de Innovación!")
                         st.markdown(texto_ia)
                     else:
-                        st.error(f"Error de Google: {res_json.get('error', {}).get('message', 'Modelo no disponible')}")
-                        st.info("💡 Tip: Si sale error, verifica que el nombre en AI Studio sea exactamente 'gemini-2.0-flash'.")
+                        # Si el -001 falla, intentamos el nombre genérico 'gemini-2.0-flash-exp'
+                        url_exp = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={api_key}"
+                        response_exp = requests.post(url_exp, headers=headers, data=json.dumps(payload))
+                        
+                        if response_exp.status_code == 200:
+                            st.success("¡Conectado al modelo experimental de nueva generación!")
+                            st.markdown(response_exp.json()['candidates'][0]['content']['parts'][0]['text'])
+                        else:
+                            st.error(f"Nota de Google: {res_json.get('error', {}).get('message', 'Modelo en mantenimiento')}")
+                            st.info("💡 Tip: Verifica en AI Studio cuál es el nombre exacto del modelo que aparece en tu panel lateral.")
                 except Exception as e:
                     st.error(f"Error de red: {str(e)}")
         else:
@@ -48,4 +56,4 @@ if api_key:
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
-st.info("Desarrollado con tecnología Gemini 2.0 para el Centro de Innovación.")
+st.info("Sistema actualizado al motor estable Gemini 2.0.")
