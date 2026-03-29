@@ -2,88 +2,97 @@ import streamlit as st
 import requests
 import json
 
-# 1. Configuración de identidad visual
-st.set_page_config(
-    page_title="RedInnovacion.pe | Centro de Innovación", 
-    page_icon="🚀",
-    layout="wide"
-)
+# 1. Configuración de Marca RedInnovacion.pe
+st.set_page_config(page_title="RedInnovacion.pe | Mentoría BMC", page_icon="📊", layout="wide")
 
-# Estilo personalizado para el nombre
 st.markdown("""
     <style>
-    .main-title {
-        color: #0E8388;
-        font-size: 40px;
-        font-weight: bold;
-    }
-    .subtitle {
-        color: #2E4F4F;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
+    .main-title { color: #0E8388; font-size: 35px; font-weight: bold; }
+    .canvas-header { color: #2E4F4F; font-size: 22px; font-weight: bold; margin-top: 20px; border-bottom: 2px solid #0E8388; }
+    .stTextArea label { font-weight: bold; color: #111; }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown('<p class="main-title">🚀 RedInnovacion.pe</p>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Centro de Emprendimiento e Innovación Tecnológica</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-title">🚀 RedInnovacion.pe: Mentoría Business Model Canvas</p>', unsafe_allow_html=True)
+st.write("Completa los 9 bloques de tu modelo de negocio para recibir una auditoría estratégica integral.")
 
-st.divider()
-
-# 2. Configuración de la API (Gemini 2.5 Flash-Lite)
+# 2. Configuración de API
 api_key = st.secrets.get("GOOGLE_API_KEY")
 
 if api_key:
-    # Formulario de Mentoría
-    with st.container():
-        st.info("💡 Bienvenido al Panel de Mentoría Digital. Cuéntanos sobre tu proyecto para recibir un análisis estratégico instantáneo.")
-        
-        with st.form("mentoria_redinnovacion"):
-            col1, col2 = st.columns(2)
-            with col1:
-                nombre = st.text_input("Nombre del Emprendedor")
-            with col2:
-                proyecto = st.text_input("Nombre del Proyecto / Idea")
-                
-            descripcion = st.text_area("Describe tu propuesta, tus retos y tus metas:")
-            
-            boton = st.form_submit_button("Obtener Mentoría Estratégica")
+    with st.form("bmc_form"):
+        st.markdown('<p class="canvas-header">1. PROPUESTA DE VALOR</p>', unsafe_allow_html=True)
+        propuesta = st.text_area("¿Qué problema resuelves y qué te hace único?", placeholder="Ej: Licores artesanales con frutos exóticos medicinales...")
 
-    if boton:
-        if descripcion:
-            with st.spinner("Analizando con el motor de IA de RedInnovacion.pe..."):
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown('<p class="canvas-header">2. SEGMENTOS DE CLIENTES</p>', unsafe_allow_html=True)
+            segmentos = st.text_area("¿Quiénes son tus clientes ideales?", placeholder="Ej: Turistas, amantes de productos orgánicos, 25-50 años...")
+            
+            st.markdown('<p class="canvas-header">3. CANALES</p>', unsafe_allow_html=True)
+            canales = st.text_area("¿Cómo entregas tu producto/servicio?", placeholder="Ej: Tienda online, ferias regionales, redes sociales...")
+
+        with col2:
+            st.markdown('<p class="canvas-header">4. RELACIÓN CON CLIENTES</p>', unsafe_allow_html=True)
+            relaciones = st.text_area("¿Cómo captas y retienes clientes?", placeholder="Ej: Atención personalizada, comunidad en WhatsApp, programas de lealtad...")
+            
+            st.markdown('<p class="canvas-header">5. FUENTES DE INGRESOS</p>', unsafe_allow_html=True)
+            ingresos = st.text_area("¿Cómo ganas dinero?", placeholder="Ej: Venta directa por botella, suscripción mensual, talleres de cata...")
+
+        col3, col4 = st.columns(2)
+        with col3:
+            st.markdown('<p class="canvas-header">6. RECURSOS CLAVE</p>', unsafe_allow_html=True)
+            recursos = st.text_area("¿Qué activos necesitas para operar?", placeholder="Ej: Planta de destilación, permisos sanitarios, expertos en botánica...")
+            
+            st.markdown('<p class="canvas-header">7. ACTIVIDADES CLAVE</p>', unsafe_allow_html=True)
+            actividades = st.text_area("¿Qué acciones son vitales para tu negocio?", placeholder="Ej: Producción, control de calidad, marketing digital...")
+
+        with col4:
+            st.markdown('<p class="canvas-header">8. SOCIOS CLAVE</p>', unsafe_allow_html=True)
+            socios = st.text_area("¿Quiénes son tus aliados estratégicos?", placeholder="Ej: Agricultores locales, distribuidores en Lima, RedInnovacion.pe...")
+            
+            st.markdown('<p class="canvas-header">9. ESTRUCTURA DE COSTOS</p>', unsafe_allow_html=True)
+            costos = st.text_area("¿En qué gastas principalmente?", placeholder="Ej: Materia prima, envases, publicidad, salarios...")
+
+        st.markdown("---")
+        enviar = st.form_submit_button("🚀 Generar Diagnóstico de Modelo de Negocio")
+
+    if enviar:
+        if propuesta and segmentos:
+            with st.spinner("Nuestros consultores de RedInnovacion.pe están auditando tu Canvas..."):
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
                 
-                headers = {'Content-Type': 'application/json'}
+                bmc_data = f"""
+                Analiza este Business Model Canvas:
+                1. Propuesta: {propuesta}
+                2. Segmentos: {segmentos}
+                3. Canales: {canales}
+                4. Relación: {relaciones}
+                5. Ingresos: {ingresos}
+                6. Recursos: {recursos}
+                7. Actividades: {actividades}
+                8. Socios: {socios}
+                9. Costos: {costos}
+                """
+                
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Actúa como un mentor senior de RedInnovacion.pe, un centro de emprendimiento e innovación en Perú. Analiza el proyecto '{proyecto}' de {nombre}. Descripción: {descripcion}. Brinda una hoja de ruta con 3 pasos críticos, consejos de escalabilidad y una frase de motivación inspiradora."}]
+                        "parts": [{"text": f"Eres un consultor senior de RedInnovacion.pe experto en Lean Startup. {bmc_data} Brinda: 1. Un análisis de coherencia del modelo. 2. Identifica el riesgo más grande. 3. Tres recomendaciones para escalar el negocio rápidamente."}]
                     }]
                 }
                 
                 try:
-                    response = requests.post(url, headers=headers, data=json.dumps(payload))
-                    res_json = response.json()
-                    
+                    response = requests.post(url, json=payload)
                     if response.status_code == 200:
-                        resultado = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success(f"¡Análisis Generado Exitosamente para {proyecto}!")
-                        st.markdown("---")
+                        resultado = response.json()['candidates'][0]['content']['parts'][0]['text']
+                        st.success("¡Diagnóstico Estratégico Finalizado!")
                         st.markdown(resultado)
-                        st.markdown("---")
-                        st.caption("Respuesta generada por el motor Gemini 2.5 Flash-Lite - RedInnovacion.pe © 2026")
                     else:
-                        st.error("Hubo un problema al conectar con el servidor. Inténtalo de nuevo en unos segundos.")
+                        st.error("Error en la conexión. Revisa tu API Key.")
                 except Exception as e:
-                    st.error(f"Error de conexión: {str(e)}")
+                    st.error(f"Falla de red: {e}")
         else:
-            st.warning("Por favor, ingresa los detalles de tu proyecto para iniciar el análisis.")
-else:
-    st.error("⚠️ Error de configuración: La clave de acceso no está vinculada. Contacta al soporte técnico de RedInnovacion.pe")
+            st.warning("Para una mentoría de calidad, completa al menos la Propuesta de Valor y el Segmento de Clientes.")
 
-# Pie de página profesional
-st.sidebar.title("Sobre Nosotros")
-st.sidebar.info("""
-**RedInnovacion.pe** es el ecosistema líder para el desarrollo de emprendimientos tecnológicos en la región. 
-Nuestra misión es potenciar el talento local mediante el uso de Inteligencia Artificial avanzada.
-""")
+else:
+    st.error("⚠️ Configura la GOOGLE_API_KEY en Secrets.")
