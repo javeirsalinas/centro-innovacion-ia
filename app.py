@@ -19,14 +19,15 @@ if api_key:
 
     if boton:
         if descripcion:
-            with st.spinner("Buscando canal de conexión con Google AI..."):
-                # PROBAMOS LA RUTA QUE SÍ ESTÁ ACTIVA EN MARZO 2026
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            with st.spinner("Estableciendo conexión segura con Google AI..."):
+                # URL CON EL MODELO ESPECÍFICO DE ALTA COMPATIBILIDAD (Gemini 1.5 Flash - Versión 002)
+                # Esta ruta es la más estable para regiones fuera de EE.UU.
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-002:generateContent?key={api_key}"
                 
                 headers = {'Content-Type': 'application/json'}
                 payload = {
                     "contents": [{
-                        "parts": [{"text": f"Eres un mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre}."}]
+                        "parts": [{"text": f"Actúa como mentor experto en agronegocios. Analiza el proyecto {descripcion} de {nombre} (COLPA DE COPA) en la selva peruana."}]
                     }]
                 }
                 
@@ -36,21 +37,23 @@ if api_key:
                     
                     if response.status_code == 200:
                         texto_ia = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success("¡Conexión Exitosa!")
+                        st.success("¡Análisis Exitoso!")
                         st.markdown(texto_ia)
                     else:
-                        # Si falla el anterior, intentamos con el nombre corto
-                        url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={api_key}"
+                        # Si falla el anterior, intentamos con el modelo Pro 002
+                        url_alt = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-002:generateContent?key={api_key}"
                         response_alt = requests.post(url_alt, headers=headers, data=json.dumps(payload))
                         
                         if response_alt.status_code == 200:
-                            st.success("¡Conexión Exitosa (Ruta Alternativa)!")
+                            st.success("¡Análisis Exitoso (Ruta Pro)!")
                             st.markdown(response_alt.json()['candidates'][0]['content']['parts'][0]['text'])
                         else:
                             st.error(f"Error de Google: {res_json.get('error', {}).get('message', 'Error desconocido')}")
-                            st.info("💡 Tip: Ve a Google AI Studio y verifica que el chat te responda ahí mismo.")
+                            st.info("💡 Tip: Verifica que tu API Key en AI Studio esté marcada como 'Free Tier'.")
                 except Exception as e:
                     st.error(f"Error de red: {str(e)}")
+        else:
+            st.warning("Por favor, describe tu proyecto.")
 else:
     st.error("⚠️ Configura la GOOGLE_API_KEY en los Secrets de Streamlit.")
 
