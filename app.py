@@ -25,7 +25,7 @@ if api_key:
         col_reg1, col_reg2, col_reg3 = st.columns(3)
         
         with col_reg1:
-            nombre_usuario = st.text_input("Nombre Completo")
+            nombre_usuario = st.text_input("Nombre Emprendedor")
         with col_reg2:
             nombre_emprendimiento = st.text_input("Nombre del Emprendimiento")
         with col_reg3:
